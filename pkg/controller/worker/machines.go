@@ -157,41 +157,25 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					//	},
 					//})
 
-					if strings.HasPrefix(pool.MachineType, "n2") {
-						for i := 0; i < 2; i++ {
-							disks = append(disks, map[string]interface{}{
-								"autoDelete": true,
-								"boot":       false,
-								"sizeGb":     volumeSize,
-								"type":       "SCRATCH",
-								"interface":  "NVME",
-								"image":      machineImage,
-								"labels": map[string]interface{}{
-									"name": w.worker.Name,
-								},
-							})
-						}
-					} else {
-						mArry := strings.Split(pool.MachineType, "-")
-						if len(mArry) > 1 {
-							mType, err := strconv.ParseInt(mArry[len(mArry)-1], 10, 64)
-							if err != nil {
-								//ignore
-							} else {
-								if mType >= 8 {
-									for i := 0; i < 3; i++ {
-										disks = append(disks, map[string]interface{}{
-											"autoDelete": true,
-											"boot":       false,
-											"sizeGb":     volumeSize,
-											"type":       "SCRATCH",
-											"interface":  "NVME",
-											"image":      machineImage,
-											"labels": map[string]interface{}{
-												"name": w.worker.Name,
-											},
-										})
-									}
+					mArry := strings.Split(pool.MachineType, "-")
+					if len(mArry) > 1 {
+						mType, err := strconv.ParseInt(mArry[len(mArry)-1], 10, 64)
+						if err != nil {
+							//ignore
+						} else {
+							if mType >= 8 {
+								for i := 0; i < 3; i++ {
+									disks = append(disks, map[string]interface{}{
+										"autoDelete": true,
+										"boot":       false,
+										"sizeGb":     volumeSize,
+										"type":       "SCRATCH",
+										"interface":  "NVME",
+										"image":      machineImage,
+										"labels": map[string]interface{}{
+											"name": w.worker.Name,
+										},
+									})
 								}
 							}
 						}
