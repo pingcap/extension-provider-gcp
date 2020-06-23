@@ -22,4 +22,4 @@ spec:
       values:
         image:
           repository: qiffang199133/provider-gcp
-          tag: v1.7.1-dev
+          tag: v1.7.4-dev
