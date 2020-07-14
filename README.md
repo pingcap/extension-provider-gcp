@@ -5,7 +5,6 @@ Release:
 ```
 echo ${version} > VERSION 
 make docker-images
-make docker-push
 ```
 
 # [Gardener Extension for GCP provider](https://gardener.cloud)
