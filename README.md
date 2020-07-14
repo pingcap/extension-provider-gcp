@@ -1,3 +1,13 @@
+# Fork of Gardener Extesnion for GCP provider
+
+Release:
+
+```
+echo ${version} > VERSION 
+make docker-images
+make docker-push
+```
+
 # [Gardener Extension for GCP provider](https://gardener.cloud)
 
 [![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/gardener-extension-provider-gcp-master/jobs/master-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/gardener-extension-provider-gcp-master/jobs/master-head-update-job)
