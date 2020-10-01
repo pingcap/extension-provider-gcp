@@ -144,7 +144,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					return err
 				}
 
-				if strings.Contains(strings.ToLower(componentName), strings.ToLower("tikv")) {
+				if strings.Contains(strings.ToLower(componentName), strings.ToLower("tikv")) || strings.Contains(strings.ToLower(componentName), strings.ToLower("tiflash")) {
 					//disks = append(disks, map[string]interface{}{
 					//	"autoDelete": true,
 					//	"boot":       false,
@@ -343,4 +343,3 @@ func sanitizeGcpLabelOrValue(label string, startWithCharacter bool) string {
 	}
 	return v
 }
-
