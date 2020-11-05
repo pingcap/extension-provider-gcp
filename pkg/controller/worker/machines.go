@@ -136,6 +136,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			disks = append(disks, disk)
 
 			componentName, ok := pool.Labels["gardener.wg.prefix.name"]
+
+
 			if !ok {
 				fmt.Println("componet does not contain gardener.wg.prefix.name")
 			} else {
@@ -144,43 +146,61 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					return err
 				}
 
-				if strings.Contains(strings.ToLower(componentName), strings.ToLower("tikv")) || strings.Contains(strings.ToLower(componentName), strings.ToLower("tiflash")) {
-					//disks = append(disks, map[string]interface{}{
-					//	"autoDelete": true,
-					//	"boot":       false,
-					//	"sizeGb":     volumeSize,
-					//	"type":       "SCRATCH",
-					//	"interface":  "NVME",
-					//	"image":      machineImage,
-					//	"labels": map[string]interface{}{
-					//		"name": w.worker.Name,
-					//	},
-					//})
+				useAnnotation, count := useAnnotation(pool)
+				if useAnnotation {
+					for i := 0; i < count; i++ {
+						disks = append(disks, map[string]interface{}{
+							"autoDelete": true,
+							"boot":       false,
+							"sizeGb":     volumeSize,
+							"type":       "SCRATCH",
+							"interface":  "NVME",
+							"image":      machineImage,
+							"labels": map[string]interface{}{
+								"name": w.worker.Name,
+							},
+						})
+					}
 
-					mArry := strings.Split(pool.MachineType, "-")
-					if len(mArry) > 1 {
-						mType, err := strconv.ParseInt(mArry[len(mArry)-1], 10, 64)
-						if err != nil {
-							//ignore
-						} else {
-							if mType >= 8 {
-								for i := 0; i < 5; i++ {
-									disks = append(disks, map[string]interface{}{
-										"autoDelete": true,
-										"boot":       false,
-										"sizeGb":     volumeSize,
-										"type":       "SCRATCH",
-										"interface":  "NVME",
-										"image":      machineImage,
-										"labels": map[string]interface{}{
-											"name": w.worker.Name,
-										},
-									})
+				} else {
+					if strings.Contains(strings.ToLower(componentName), strings.ToLower("tikv")) || strings.Contains(strings.ToLower(componentName), strings.ToLower("tiflash")) {
+						//disks = append(disks, map[string]interface{}{
+						//	"autoDelete": true,
+						//	"boot":       false,
+						//	"sizeGb":     volumeSize,
+						//	"type":       "SCRATCH",
+						//	"interface":  "NVME",
+						//	"image":      machineImage,
+						//	"labels": map[string]interface{}{
+						//		"name": w.worker.Name,
+						//	},
+						//})
+
+						mArry := strings.Split(pool.MachineType, "-")
+						if len(mArry) > 1 {
+							mType, err := strconv.ParseInt(mArry[len(mArry)-1], 10, 64)
+							if err != nil {
+								//ignore
+							} else {
+								if mType >= 8 {
+									for i := 0; i < 5; i++ {
+										disks = append(disks, map[string]interface{}{
+											"autoDelete": true,
+											"boot":       false,
+											"sizeGb":     volumeSize,
+											"type":       "SCRATCH",
+											"interface":  "NVME",
+											"image":      machineImage,
+											"labels": map[string]interface{}{
+												"name": w.worker.Name,
+											},
+										})
+									}
 								}
 							}
 						}
-					}
 
+					}
 				}
 			}
 		}
@@ -279,6 +299,73 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	w.machineImages = machineImages
 
 	return nil
+}
+
+func useAnnotation(pool v1alpha1.WorkerPool) (bool, int){
+	if pool.Annotations == nil {
+		return false, 0
+	}
+
+	v, ok := pool.Annotations["pingcap.com/gcp-provider-annotation"]
+	if !ok {
+		return false, 0
+	}
+	
+	if strings.TrimSpace(v) == "true" {
+		count, ok := pool.Annotations["pingcap.com/gcp-local-volume-count"]
+		if !ok {
+			return true, 0
+		}
+
+		num, err := strconv.ParseInt(strings.TrimSpace(count), 10, 64)
+		if err != nil {
+			return true, 0
+		}
+		return true, int(num)
+	}
+
+	return false, 0
+}
+
+func appendDisks(componentName string, pool v1alpha1.WorkerPool) {
+	if strings.Contains(strings.ToLower(componentName), strings.ToLower("tikv")) || strings.Contains(strings.ToLower(componentName), strings.ToLower("tiflash")) {
+		//disks = append(disks, map[string]interface{}{
+		//	"autoDelete": true,
+		//	"boot":       false,
+		//	"sizeGb":     volumeSize,
+		//	"type":       "SCRATCH",
+		//	"interface":  "NVME",
+		//	"image":      machineImage,
+		//	"labels": map[string]interface{}{
+		//		"name": w.worker.Name,
+		//	},
+		//})
+
+		mArry := strings.Split(pool.MachineType, "-")
+		if len(mArry) > 1 {
+			mType, err := strconv.ParseInt(mArry[len(mArry)-1], 10, 64)
+			if err != nil {
+				//ignore
+			} else {
+				if mType >= 8 {
+					for i := 0; i < 5; i++ {
+						disks = append(disks, map[string]interface{}{
+							"autoDelete": true,
+							"boot":       false,
+							"sizeGb":     volumeSize,
+							"type":       "SCRATCH",
+							"interface":  "NVME",
+							"image":      machineImage,
+							"labels": map[string]interface{}{
+								"name": w.worker.Name,
+							},
+						})
+					}
+				}
+			}
+		}
+
+	}
 }
 
 func createDiskSpec(volume v1alpha1.Volume, workerName string, machineImage string, boot bool) (map[string]interface{}, error) {
