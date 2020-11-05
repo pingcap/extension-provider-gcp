@@ -327,47 +327,6 @@ func useAnnotation(pool v1alpha1.WorkerPool) (bool, int){
 	return false, 0
 }
 
-func appendDisks(componentName string, pool v1alpha1.WorkerPool) {
-	if strings.Contains(strings.ToLower(componentName), strings.ToLower("tikv")) || strings.Contains(strings.ToLower(componentName), strings.ToLower("tiflash")) {
-		//disks = append(disks, map[string]interface{}{
-		//	"autoDelete": true,
-		//	"boot":       false,
-		//	"sizeGb":     volumeSize,
-		//	"type":       "SCRATCH",
-		//	"interface":  "NVME",
-		//	"image":      machineImage,
-		//	"labels": map[string]interface{}{
-		//		"name": w.worker.Name,
-		//	},
-		//})
-
-		mArry := strings.Split(pool.MachineType, "-")
-		if len(mArry) > 1 {
-			mType, err := strconv.ParseInt(mArry[len(mArry)-1], 10, 64)
-			if err != nil {
-				//ignore
-			} else {
-				if mType >= 8 {
-					for i := 0; i < 5; i++ {
-						disks = append(disks, map[string]interface{}{
-							"autoDelete": true,
-							"boot":       false,
-							"sizeGb":     volumeSize,
-							"type":       "SCRATCH",
-							"interface":  "NVME",
-							"image":      machineImage,
-							"labels": map[string]interface{}{
-								"name": w.worker.Name,
-							},
-						})
-					}
-				}
-			}
-		}
-
-	}
-}
-
 func createDiskSpec(volume v1alpha1.Volume, workerName string, machineImage string, boot bool) (map[string]interface{}, error) {
 	volumeSize, err := worker.DiskSize(volume.Size)
 	if err != nil {
