@@ -93,12 +93,7 @@ func (a *actuator) Delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		return err
 	}
 
-	tf, err = internal.SetTerraformerVariablesEnvironment(tf, serviceAccount)
-	if err != nil {
-		return err
-	}
-
-	gcpClient, err := gcpclient.NewFromServiceAccount(ctx, serviceAccount.Raw)
+	gcpClient, err := gcpclient.NewFromServiceAccount()
 	if err != nil {
 		return err
 	}

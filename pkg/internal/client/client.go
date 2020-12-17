@@ -17,11 +17,8 @@ package gcp
 import (
 	"context"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
-	"google.golang.org/api/option"
 )
 
 type client struct {
@@ -52,15 +49,9 @@ type routesDeleteCall struct {
 	routesDeleteCall *compute.RoutesDeleteCall
 }
 
-// NewFromServiceAccount creates a new client from the given service account.
-func NewFromServiceAccount(ctx context.Context, serviceAccount []byte) (Interface, error) {
-	jwt, err := google.JWTConfigFromJSON(serviceAccount, compute.CloudPlatformScope)
-	if err != nil {
-		return nil, err
-	}
-
-	httpClient := oauth2.NewClient(ctx, jwt.TokenSource(ctx))
-	service, err := compute.NewService(context.TODO(), option.WithHTTPClient(httpClient))
+// NewFromServiceAccount creates a new client from computeEngine metadata.
+func NewFromServiceAccount() (Interface, error) {
+	service, err := compute.NewService(context.TODO())
 	if err != nil {
 		return nil, err
 	}

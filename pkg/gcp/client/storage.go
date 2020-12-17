@@ -46,7 +46,7 @@ type storageClient struct {
 
 // NewStorageClient creates a new storage client from the given  serviceAccount.
 func NewStorageClient(ctx context.Context, serviceAccount *internal.ServiceAccount) (StorageClient, error) {
-	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(serviceAccount.Raw), option.WithScopes(storage.ScopeFullControl))
+	client, err := storage.NewClient(ctx, option.WithScopes(storage.ScopeFullControl))
 	if err != nil {
 		return nil, err
 	}

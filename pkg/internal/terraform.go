@@ -15,8 +15,6 @@
 package internal
 
 import (
-	"bytes"
-	"encoding/json"
 	"time"
 
 	"github.com/gardener/gardener-extension-provider-gcp/pkg/internal/imagevector"
@@ -25,24 +23,6 @@ import (
 	"github.com/gardener/gardener/pkg/logger"
 	"k8s.io/client-go/rest"
 )
-
-const (
-	// TerraformVarServiceAccount is the name of the terraform service account environment variable.
-	TerraformVarServiceAccount = "TF_VAR_SERVICEACCOUNT"
-)
-
-// TerraformerVariablesEnvironmentFromServiceAccount computes the Terraformer variables environment from the
-// given ServiceAccount.
-func TerraformerVariablesEnvironmentFromServiceAccount(account *ServiceAccount) (map[string]string, error) {
-	var buf bytes.Buffer
-	if err := json.Compact(&buf, account.Raw); err != nil {
-		return nil, err
-	}
-
-	return map[string]string{
-		TerraformVarServiceAccount: buf.String(),
-	}, nil
-}
 
 // NewTerraformer initializes a new Terraformer.
 func NewTerraformer(
@@ -62,6 +42,8 @@ func NewTerraformer(
 		SetDeadlinePod(15 * time.Minute), nil
 }
 
+// https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#running-terraform-on-google-cloud
+// Terraform support to authenticate to Google Cloud without having to bake in a separate credential/authentication file.
 // NewTerraformerWithAuth initializes a new Terraformer that has the ServiceAccount credentials.
 func NewTerraformerWithAuth(
 	restConfig *rest.Config,
@@ -70,20 +52,5 @@ func NewTerraformerWithAuth(
 	name string,
 	serviceAccount *ServiceAccount,
 ) (terraformer.Terraformer, error) {
-	tf, err := NewTerraformer(restConfig, purpose, namespace, name)
-	if err != nil {
-		return nil, err
-	}
-
-	return SetTerraformerVariablesEnvironment(tf, serviceAccount)
-}
-
-// SetTerraformerVariablesEnvironment sets the environment variables based on the given service account.
-func SetTerraformerVariablesEnvironment(tf terraformer.Terraformer, serviceAccount *ServiceAccount) (terraformer.Terraformer, error) {
-	variables, err := TerraformerVariablesEnvironmentFromServiceAccount(serviceAccount)
-	if err != nil {
-		return nil, err
-	}
-
-	return tf.SetVariablesEnvironment(variables), nil
+	return NewTerraformer(restConfig, purpose, namespace, name)
 }

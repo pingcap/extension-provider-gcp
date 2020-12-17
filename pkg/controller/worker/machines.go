@@ -137,7 +137,6 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 			componentName, ok := pool.Labels["gardener.wg.prefix.name"]
 
-
 			if !ok {
 				fmt.Println("componet does not contain gardener.wg.prefix.name")
 			} else {
@@ -301,7 +300,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	return nil
 }
 
-func useAnnotation(pool v1alpha1.WorkerPool) (bool, int){
+func useAnnotation(pool v1alpha1.WorkerPool) (bool, int) {
 	if pool.Annotations == nil {
 		return false, 0
 	}
@@ -310,7 +309,7 @@ func useAnnotation(pool v1alpha1.WorkerPool) (bool, int){
 	if !ok {
 		return false, 0
 	}
-	
+
 	if strings.TrimSpace(v) == "true" {
 		count, ok := pool.Annotations["pingcap.com/gcp-local-volume-count"]
 		if !ok {

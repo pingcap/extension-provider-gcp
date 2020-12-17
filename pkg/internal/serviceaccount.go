@@ -28,8 +28,6 @@ import (
 
 // ServiceAccount represents a GCP service account.
 type ServiceAccount struct {
-	// Raw is the raw representation of the GCP service account.
-	Raw []byte
 	// ProjectID is the project id the service account is associated to.
 	ProjectID string
 }
@@ -47,7 +45,6 @@ func GetServiceAccount(ctx context.Context, c client.Client, secretRef corev1.Se
 	}
 
 	return &ServiceAccount{
-		Raw:       data,
 		ProjectID: projectID,
 	}, nil
 }
