@@ -17,8 +17,10 @@ package controlplane
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"regexp"
 
+	"github.com/gardener/gardener-extension-provider-gcp/pkg/gcp"
 	"github.com/gardener/gardener-extension-provider-gcp/pkg/internal"
 
 	"github.com/coreos/go-systemd/unit"
@@ -72,9 +74,17 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, ectx generi
 		return err
 	}
 
+	sa, err := internal.GetServiceAccount(ctx, e.client, corev1.SecretReference{
+		Namespace: new.Namespace,
+		Name:      v1beta1constants.SecretNameCloudProvider,
+	})
+	if err != nil {
+		return err
+	}
+
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
 		ensureKubeAPIServerCommandLineArgs(c, csiEnabled, csiMigrationComplete)
-		//ensureEnvVars(c, csiEnabled, csiMigrationComplete)
+		ensureEnvVars(c, csiEnabled, csiMigrationComplete, sa.Raw)
 		ensureVolumeMounts(c, cluster.Shoot.Spec.Kubernetes.Version, csiEnabled, csiMigrationComplete)
 	}
 
@@ -97,8 +107,17 @@ func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, ect
 		return err
 	}
 
+	sa, err := internal.GetServiceAccount(ctx, e.client, corev1.SecretReference{
+		Namespace: new.Namespace,
+		Name:      v1beta1constants.SecretNameCloudProvider,
+	})
+	if err != nil {
+		return err
+	}
+
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-controller-manager"); c != nil {
 		ensureKubeControllerManagerCommandLineArgs(c, csiEnabled, csiMigrationComplete)
+		ensureEnvVars(c, csiEnabled, csiMigrationComplete, sa.Raw)
 		ensureVolumeMounts(c, cluster.Shoot.Spec.Kubernetes.Version, csiEnabled, csiMigrationComplete)
 	}
 
@@ -211,20 +230,24 @@ func ensureKubeControllerManagerLabels(t *corev1.PodTemplateSpec, csiEnabled, cs
 	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
 }
 
-//func ensureEnvVars(c *corev1.Container, csiEnabled, csiMigrationComplete bool) {
-//	if csiEnabled && csiMigrationComplete {
-//		c.Env = extensionswebhook.EnsureNoEnvVarWithName(c.Env, credentialsEnvVar.Name)
-//		return
-//	}
-//
-//	c.Env = extensionswebhook.EnsureEnvVarWithName(c.Env, credentialsEnvVar)
-//}
+func ensureEnvVars(c *corev1.Container, csiEnabled, csiMigrationComplete bool, serviceAccontData []byte) {
+	if serviceAccontData == nil {
+		return
+	}
+
+	if csiEnabled && csiMigrationComplete {
+		c.Env = extensionswebhook.EnsureNoEnvVarWithName(c.Env, credentialsEnvVar.Name)
+		return
+	}
+
+	c.Env = extensionswebhook.EnsureEnvVarWithName(c.Env, credentialsEnvVar)
+}
 
 var (
-	//credentialsEnvVar = corev1.EnvVar{
-	//	Name:  "GOOGLE_APPLICATION_CREDENTIALS",
-	//	Value: fmt.Sprintf("/srv/cloudprovider/%s", gcp.ServiceAccountJSONField),
-	//}
+	credentialsEnvVar = corev1.EnvVar{
+		Name:  "GOOGLE_APPLICATION_CREDENTIALS",
+		Value: fmt.Sprintf("/srv/cloudprovider/%s", gcp.ServiceAccountJSONField),
+	}
 	etcSSLName = "etc-ssl"
 
 	cloudProviderConfigVolumeMount = corev1.VolumeMount{

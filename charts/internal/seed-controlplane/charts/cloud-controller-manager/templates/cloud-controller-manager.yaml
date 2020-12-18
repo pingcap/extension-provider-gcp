@@ -69,6 +69,11 @@ spec:
         - --tls-cipher-suites={{ include "kubernetes.tlsCipherSuites" . | replace "\n" "," | trimPrefix "," }}
         - --use-service-account-credentials
         - --v=2
+        env:
+        {{- if .Values.useCustomServiceAccount }}
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /srv/cloudprovider/serviceaccount.json
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz
@@ -100,6 +105,8 @@ spec:
           mountPath: /var/lib/cloud-controller-manager-server
         - name: cloud-provider-config
           mountPath: /etc/kubernetes/cloudprovider
+        - name: cloudprovider
+          mountPath: /srv/cloudprovider
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -114,3 +121,6 @@ spec:
       - name: cloud-provider-config
         configMap:
           name: cloud-provider-config
+      - name: cloudprovider
+        secret:
+          secretName: cloudprovider

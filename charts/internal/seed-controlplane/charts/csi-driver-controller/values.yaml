@@ -13,6 +13,7 @@ images:
 socketPath: /var/lib/csi/sockets/pluginproxy
 projectID: foo
 zone: bar
+useCustomServiceAccount: false
 
 resources:
   driver:
