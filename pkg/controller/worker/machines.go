@@ -254,7 +254,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					{
 						"email": infrastructureStatus.ServiceAccountEmail,
 						"scopes": []string{
-							"https://www.googleapis.com/auth/compute",
+							"https://www.googleapis.com/auth/cloud-platform",
 						},
 					},
 				},
