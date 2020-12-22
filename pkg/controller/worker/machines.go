@@ -254,6 +254,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					{
 						"email": infrastructureStatus.ServiceAccountEmail,
 						"scopes": []string{
+							// The best practice is to set the full cloud-platform access scope on the instance, then securely limit the service account's access using IAM roles.
 							"https://www.googleapis.com/auth/cloud-platform",
 						},
 					},
