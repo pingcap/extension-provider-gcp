@@ -16,6 +16,7 @@ package worker
 
 import (
 	"context"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 
 	api "github.com/gardener/gardener-extension-provider-gcp/pkg/apis/gcp"

@@ -70,8 +70,10 @@ spec:
         - --use-service-account-credentials
         - --v=2
         env:
+        {{- if .Values.useCustomServiceAccount }}
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /srv/cloudprovider/serviceaccount.json
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz

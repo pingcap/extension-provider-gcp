@@ -54,6 +54,15 @@ type routesDeleteCall struct {
 
 // NewFromServiceAccount creates a new client from the given service account.
 func NewFromServiceAccount(ctx context.Context, serviceAccount []byte) (Interface, error) {
+	if serviceAccount == nil {
+		service, err := compute.NewService(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		return New(service), nil
+	}
+
 	jwt, err := google.JWTConfigFromJSON(serviceAccount, compute.CloudPlatformScope)
 	if err != nil {
 		return nil, err

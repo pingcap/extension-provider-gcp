@@ -46,8 +46,10 @@ spec:
         env:
         - name: CSI_ENDPOINT
           value: unix://{{ .Values.socketPath }}/csi.sock
+        {{- if .Values.useCustomServiceAccount }}
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /srv/cloudprovider/serviceaccount.json
+        {{- end }}
 {{- if .Values.resources.driver }}
         resources:
 {{ toYaml .Values.resources.driver | indent 10 }}

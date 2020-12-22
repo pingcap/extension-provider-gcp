@@ -74,9 +74,17 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, ectx generi
 		return err
 	}
 
+	sa, err := internal.GetServiceAccount(ctx, e.client, corev1.SecretReference{
+		Namespace: new.Namespace,
+		Name:      v1beta1constants.SecretNameCloudProvider,
+	})
+	if err != nil {
+		return err
+	}
+
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
 		ensureKubeAPIServerCommandLineArgs(c, csiEnabled, csiMigrationComplete)
-		ensureEnvVars(c, csiEnabled, csiMigrationComplete)
+		ensureEnvVars(c, csiEnabled, csiMigrationComplete, sa.Raw)
 		ensureVolumeMounts(c, cluster.Shoot.Spec.Kubernetes.Version, csiEnabled, csiMigrationComplete)
 	}
 
@@ -99,9 +107,17 @@ func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, ect
 		return err
 	}
 
+	sa, err := internal.GetServiceAccount(ctx, e.client, corev1.SecretReference{
+		Namespace: new.Namespace,
+		Name:      v1beta1constants.SecretNameCloudProvider,
+	})
+	if err != nil {
+		return err
+	}
+
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-controller-manager"); c != nil {
 		ensureKubeControllerManagerCommandLineArgs(c, csiEnabled, csiMigrationComplete)
-		ensureEnvVars(c, csiEnabled, csiMigrationComplete)
+		ensureEnvVars(c, csiEnabled, csiMigrationComplete, sa.Raw)
 		ensureVolumeMounts(c, cluster.Shoot.Spec.Kubernetes.Version, csiEnabled, csiMigrationComplete)
 	}
 
@@ -214,7 +230,11 @@ func ensureKubeControllerManagerLabels(t *corev1.PodTemplateSpec, csiEnabled, cs
 	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
 }
 
-func ensureEnvVars(c *corev1.Container, csiEnabled, csiMigrationComplete bool) {
+func ensureEnvVars(c *corev1.Container, csiEnabled, csiMigrationComplete bool, serviceAccontData []byte) {
+	if serviceAccontData == nil {
+		return
+	}
+
 	if csiEnabled && csiMigrationComplete {
 		c.Env = extensionswebhook.EnsureNoEnvVarWithName(c.Env, credentialsEnvVar.Name)
 		return

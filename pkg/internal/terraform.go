@@ -80,6 +80,10 @@ func NewTerraformerWithAuth(
 
 // SetTerraformerVariablesEnvironment sets the environment variables based on the given service account.
 func SetTerraformerVariablesEnvironment(tf terraformer.Terraformer, serviceAccount *ServiceAccount) (terraformer.Terraformer, error) {
+	if serviceAccount.Raw == nil {
+		return tf, nil
+	}
+
 	variables, err := TerraformerVariablesEnvironmentFromServiceAccount(serviceAccount)
 	if err != nil {
 		return nil, err

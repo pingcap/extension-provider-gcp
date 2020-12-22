@@ -383,7 +383,7 @@ func getControlPlaneChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	ccm, err := getCCMChartValues(cpConfig, cp, cluster, checksums, scaledDown)
+	ccm, err := getCCMChartValues(cpConfig, cp, cluster, checksums, scaledDown, serviceAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -406,6 +406,7 @@ func getCCMChartValues(
 	cluster *extensionscontroller.Cluster,
 	checksums map[string]string,
 	scaledDown bool,
+	serviceAccount *internal.ServiceAccount,
 ) (map[string]interface{}, error) {
 	values := map[string]interface{}{
 		"enabled":           true,
@@ -422,6 +423,10 @@ func getCCMChartValues(
 		"podLabels": map[string]interface{}{
 			v1beta1constants.LabelPodMaintenanceRestart: "true",
 		},
+	}
+
+	if serviceAccount.Raw != nil {
+		values["useCustomServiceAccount"] = true
 	}
 
 	if cpConfig.CloudControllerManager != nil {
@@ -449,7 +454,7 @@ func getCSIControllerChartValues(
 		return map[string]interface{}{"enabled": false}, nil
 	}
 
-	return map[string]interface{}{
+	values := map[string]interface{}{
 		"enabled":   true,
 		"replicas":  extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 		"projectID": serviceAccount.ProjectID,
@@ -467,7 +472,13 @@ func getCSIControllerChartValues(
 				"checksum/secret-" + gcp.CSISnapshotControllerName: checksums[gcp.CSISnapshotControllerName],
 			},
 		},
-	}, nil
+	}
+
+	if serviceAccount.Raw != nil {
+		values["useCustomServiceAccount"] = true
+	}
+
+	return values, nil
 }
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.

@@ -1,4 +1,5 @@
 provider "google" {
+  // https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#running-terraform-on-google-cloud
   credentials = "${var.SERVICEACCOUNT}"
   project     = "{{ required "google.project is required" .Values.google.project }}"
   region      = "{{ required "google.region is required" .Values.google.region }}"

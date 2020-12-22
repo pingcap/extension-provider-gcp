@@ -46,6 +46,14 @@ func GetServiceAccount(ctx context.Context, c client.Client, secretRef corev1.Se
 		return nil, err
 	}
 
+	privateKey, err := ExtractServiceAccountPrivateKey(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if privateKey == "" {
+		data = nil
+	}
 	return &ServiceAccount{
 		Raw:       data,
 		ProjectID: projectID,
@@ -86,4 +94,16 @@ func ExtractServiceAccountProjectID(serviceAccountJSON []byte) (string, error) {
 	}
 
 	return serviceAccount.ProjectID, nil
+}
+
+func ExtractServiceAccountPrivateKey(serviceAccountJSON []byte) (string, error) {
+	var serviceAccount struct {
+		PrivateKey string `json:"private_key"`
+	}
+
+	if err := json.Unmarshal(serviceAccountJSON, &serviceAccount); err != nil {
+		return "", err
+	}
+
+	return serviceAccount.PrivateKey, nil
 }
