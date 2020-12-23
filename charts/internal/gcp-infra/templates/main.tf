@@ -15,6 +15,18 @@ resource "google_service_account" "serviceaccount" {
 }
 
 //=====================================================================
+//= Allow node pull images from current project's GCR
+//=====================================================================
+
+resource "google_storage_bucket_iam_binding" "binding" {
+  bucket = "artifacts.{{ required "google.project is required" .Values.google.project }}.appspot.com"
+  role = "roles/storage.objectViewer"
+  members = [
+    "serviceAccount:${google_service_account.serviceaccount.email}",
+  ]
+}
+
+//=====================================================================
 //= Networks
 //=====================================================================
 
