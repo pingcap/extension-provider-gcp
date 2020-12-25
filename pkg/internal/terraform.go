@@ -34,6 +34,11 @@ const (
 // TerraformerVariablesEnvironmentFromServiceAccount computes the Terraformer variables environment from the
 // given ServiceAccount.
 func TerraformerVariablesEnvironmentFromServiceAccount(account *ServiceAccount) (map[string]string, error) {
+	if account.Raw == nil {
+		return map[string]string{
+			TerraformVarServiceAccount: "",
+		}, nil
+	}
 	var buf bytes.Buffer
 	if err := json.Compact(&buf, account.Raw); err != nil {
 		return nil, err
@@ -80,10 +85,6 @@ func NewTerraformerWithAuth(
 
 // SetTerraformerVariablesEnvironment sets the environment variables based on the given service account.
 func SetTerraformerVariablesEnvironment(tf terraformer.Terraformer, serviceAccount *ServiceAccount) (terraformer.Terraformer, error) {
-	if serviceAccount.Raw == nil {
-		return tf, nil
-	}
-
 	variables, err := TerraformerVariablesEnvironmentFromServiceAccount(serviceAccount)
 	if err != nil {
 		return nil, err
