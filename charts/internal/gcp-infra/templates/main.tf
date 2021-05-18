@@ -38,6 +38,10 @@ resource "google_compute_network" "network" {
     update = "5m"
     delete = "5m"
   }
+
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
 }
 {{- end}}
 
@@ -53,6 +57,10 @@ resource "google_compute_subnetwork" "subnetwork-nodes" {
     {{ if .Values.networks.flowLogs.metadata }}metadata             = "{{ .Values.networks.flowLogs.metadata }}"{{ end }}
   }
 {{- end }}
+
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
 
   timeouts {
     create = "5m"
@@ -71,6 +79,10 @@ resource "google_compute_router" "router"{
     create = "5m"
     update = "5m"
     delete = "5m"
+  }
+
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
   }
 }
 {{- end }}
@@ -101,6 +113,10 @@ resource "google_compute_router_nat" "nat" {
     filter = "ERRORS_ONLY"
   }
 
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
+
   timeouts {
     create = "5m"
     update = "5m"
@@ -124,6 +140,9 @@ resource "google_compute_subnetwork" "subnetwork-internal" {
   network       = "{{ required "vpc.name is required" .Values.vpc.name }}"
   region        = "{{ required "google.region is required" .Values.google.region }}"
 
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
   timeouts {
     create = "5m"
     update = "5m"
@@ -163,6 +182,9 @@ resource "google_compute_firewall" "rule-allow-internal-access" {
     ports    = ["1-65535"]
   }
 
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
   timeouts {
     create = "5m"
     update = "5m"
@@ -180,6 +202,9 @@ resource "google_compute_firewall" "rule-allow-external-access" {
     ports    = ["80", "443"] // Allow ingress
   }
 
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
   timeouts {
     create = "5m"
     update = "5m"
@@ -210,6 +235,9 @@ resource "google_compute_firewall" "rule-allow-health-checks" {
     ports    = ["30000-32767"]
   }
 
+  tags = {
+     "tenant" = "{{ .Values.tenant }}"
+  }
   timeouts {
     create = "5m"
     update = "5m"
