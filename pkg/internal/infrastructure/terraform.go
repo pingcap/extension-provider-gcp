@@ -120,6 +120,7 @@ func ComputeTerraformerChartValues(
 			"region":  infra.Spec.Region,
 			"project": account.ProjectID,
 		},
+		"tenant": infra.Labels["tenant"],
 		"create": map[string]interface{}{
 			"vpc":         createVPC,
 			"cloudRouter": createCloudRouter,
